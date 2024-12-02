@@ -1,0 +1,431 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Music</title>
+        <link href='https://fonts.googleapis.com/css?family=Open Sans' rel='stylesheet'>
+        <style>
+            *{
+                margin:0px;
+                padding:0px;
+            }
+            button{
+                cursor: pointer;
+            }
+            ::-webkit-scrollbar {
+                display:none!important;
+            }
+            ::-webkit-scrollbar-track {
+                background: #4a2727;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: #170303;
+            }
+
+            .player{
+                padding: 2%;
+                border-radius: 20px;
+                overflow:hidden;
+                display: flex; flex-direction: column; justify-content: center; place-items: center;
+                width: 65%;
+                height: auto;
+            }
+            .player img{
+                margin: 5%;
+                width: 90%;
+                height: auto;
+                aspect-ratio: 1/1;
+    
+            }
+            .current-song-detail{
+                display: flex;
+                flex-direction: row;
+                gap: 0%;
+                width: 90%;
+            }
+            .current-song-detail h2{
+                font-size: min(5vw, 25px);
+                font-family: open sans;
+            }
+            .current-song-detail p{
+                font-size: min(4.2vw, 20px);
+                font-family: open sans;
+                font-style: italic;
+            }
+            .play-button{
+                color: white;
+                background-color: rgb(202, 2, 2);
+                width: 65%;
+                height: auto;
+                aspect-ratio: 1/1;
+                padding: 10%;
+                outline: none;
+                border: 0px;
+                border-radius: 50%;
+                font-size: 180%;
+                transform: translate(20%,-50%);
+                transition: transform ease-in 0.1s;
+            }
+            .play-button:hover{
+                background-color:  rgb(255, 0, 0);
+                transform: translate(20%,-50%) scale(1.1);
+            }
+            .slider {
+                -webkit-appearance: none;
+                width: 100%;
+                height: 25px;
+                background: #d3d3d3;
+                outline: none;
+                opacity: 0.7;
+                -webkit-transition: .2s;
+                transition: opacity .2s;
+            }
+            .slider:hover {
+                    opacity: 1;
+            }
+
+            .slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 35px;
+                height: 35px;
+                background: rgb(255, 0, 0);
+                cursor: pointer;
+            }
+
+            .slider::-moz-range-thumb {
+                width: 35px;
+                height: 35px;
+                background: rgb(255, 0, 0);
+                cursor: pointer;
+            }
+
+            .similar-songs > div{
+                display:flex;
+                flex-direction: row;
+            }
+            .song-card{
+                margin:5%;
+                width: auto;
+                height: 400px;
+                aspect-ratio: 16/20;
+                display:flex;
+                flex-direction: column;
+                place-items: center;
+                border-radius: 10px;
+                position: relative;
+            }
+            .thumb{
+                aspect-ratio: 1/1;
+                width: 100%;
+                display:flex;
+                flex-direction: column;
+                place-items:center;
+                justify-content: center;
+            }
+            .thumb img{
+                width: 90%;
+                height: auto;
+                aspect-ratio: 1/1;
+                border-radius: 10px;
+            }
+            .song-card h3{
+                margin-top: 5%;
+                font-family: open sans;
+                font-size: min(4vw, 18px);
+            }
+            .song-card p{
+                margin-top: 2%;
+                font-family: open sans;
+                font-style: italic;
+                font-size: min(3.7vw, 16px);
+                margin-bottom: 5%;
+            }
+            .similar-song-play{
+                width:28%;
+                height: auto;
+                aspect-ratio: 1/1;
+                border-radius: 50%;
+                background-color: rgb(202, 2, 2);
+                position: absolute;
+                bottom: 30%;
+                right: 10%;
+                opacity: 0;
+                transform: translateY(18%);
+                display:flex;
+                justify-content: center;
+                place-items: center;
+                padding: 1%;
+                transition: opacity 0.2s linear, transform 0.2s linear;
+                z-index: 40;
+                cursor: pointer;
+            }
+            .song-card:hover .similar-song-play{
+                transform: translateY(0%);
+                opacity: 1;
+            }
+            .similar-song-play:hover{
+                transform: scale(1.08)!important;
+                background-color: rgb(255, 0, 0)!important;
+                transition: transform 0.2s linear, background-color 0.1s linear!important;
+            }
+
+            /* Left Side Panel */
+.predict-button{
+  margin: 0 auto;
+  padding: 1.5em;
+  width: 25vw;
+  max-width: 300px;
+  background-color: white;
+  text-align: center;
+  border-radius: 50px;
+  position: relative;
+  cursor:pointer;
+}
+
+@property --angle{
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.predict-button::after, .predict-button::before{
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-image: conic-gradient(from var(--angle), #ff4545, #00ff99, #006aff, #ff0095, #ff4545);
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  z-index: -1;
+  padding: 3px;
+  border-radius: 50px;
+  animation: 3s spin linear infinite;
+}
+.predict-button::before{
+  filter: blur(1.5rem);
+  opacity: 0.5;
+}
+@keyframes spin{
+  from{
+    --angle: 0deg;
+  }
+  to{
+    --angle: 360deg;
+  }
+}
+            
+            
+            
+        </style>
+    </head>
+    <body>
+    
+        <div style="position: relative; width: 100%; display: flex; flex-direction: row;  flex-wrap: wrap;">
+           
+            <!-- ML Model Emotion Recognition -->
+            <div style="flex: 1; display: flex; gap: 5%; flex-direction: column; justify-content: center; place-items: center; height: 100vh; margin-top: 4%;">
+                <div name="video" style="width: 80%; height: auto; border-radius: 30px; background: #ddd; aspect-ratio: 16/10;">
+                </div>
+                <br>
+                <div onclick="fetchSongOnEmotion('angry');" class="predict-button">
+                   <span style="font-family: open sans; font-size: min(7vw,30px);">Fetch songs</span>
+                </div>
+                <br><br><br>
+            </div>
+        
+            <!-- Main Player -->
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; place-items: center;">
+                <!-- Playing Card -->
+                <div class="player">
+                        <img src="https://img.freepik.com/premium-photo/white-natural-paper-texture-clean-square-background-wallpaper_118047-7127.jpg" alt="Song Artwork">
+                    <div name="mainsong metadata" class="current-song-detail">
+                        <div style="flex: 1;">
+                            <button class="play-button" onclick="togglePlay()"><div style="transform: translate(5%,-5%);">▶</div></button>
+                        </div>
+                        <div style="flex: 1;">
+                            <div><h2>Song Title</h2></div>
+                            <div><p>Artist Name</p></div>
+                        </div>
+                    </div> 
+                    <div class="slide-container" style="width: 90%; justify-content: center; place-items: center;">
+                        <input type="range" onchange="updateSlider(1)" class="slider" id="music-slider" min="0"  max="100" value="0" />
+                    </div>  
+                </div>
+                <br>
+                
+
+                <!-- Similar Songs Cards -->
+                 <p style="font-size: min(8vw, 30px); font-family: open sans; padding: 5% 0% 2% 0%;">Similar Songs</p>
+                 <div class="similar-songs" style="overflow-y: hidden; overflow-x: auto; width: 100%;  height: auto; max-width: 450px; aspect-ratio: 16/20; ">
+                    <div>
+                        <div class="song-card" id="similar1" onclick="similarsongclick('#similar1')">
+                            <div class="thumb">
+                                <img src="https://img.freepik.com/premium-photo/white-natural-paper-texture-clean-square-background-wallpaper_118047-7127.jpg" alt="Song 1">
+                            </div>
+                            <div>
+                                <h3>Song Title 1</h3>
+                                <p>Artist Name</p>
+                            </div>
+                            <div class="similar-song-play">
+                                <div style="transform: translateX(5%); font-size: 130%; color:white;">▶</div>
+                            </div>
+                        </div>
+                        <div class="song-card" id="similar2" onclick="similarsongclick('#similar2')">
+                            <div class="thumb">
+                                <img src="https://img.freepik.com/premium-photo/white-natural-paper-texture-clean-square-background-wallpaper_118047-7127.jpg" alt="Song 1">
+                            </div>
+                            <div>
+                                <h3>Song Title 2</h3>
+                                <p>Artist Name</p>
+                            </div>
+                            <div class="similar-song-play">
+                                <div style="transform: translateX(5%);font-size: 130%; color:white;">▶</div>
+                            </div>
+                        </div>
+                        <div class="song-card" id="similar3" onclick="similarsongclick('#similar3')">
+                            <div class="thumb">
+                                <img src="https://img.freepik.com/premium-photo/white-natural-paper-texture-clean-square-background-wallpaper_118047-7127.jpg" alt="Song 1">
+                            </div>
+                            <div>
+                                <h3>Song Title 3</h3>
+                                <p>Artist Name</p>
+                            </div>
+                            <div class="similar-song-play">
+                                <div style="transform: translateX(5%); font-size: 130%; color:white;">▶</div>
+                            </div>
+                        </div>
+                    </div>
+                 </div>
+                
+                
+            </div>
+        </div>
+
+        <script>
+        let isPlaying = false;
+        let audioElement = new Audio();
+        let songData = {}; // To store song data
+
+        // Play Button Toggle
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const playButton = document.querySelector('.play-button div');
+            playButton.textContent = isPlaying ? '⏸' : '▶'; // Change play/pause icon
+            if (isPlaying) {
+                audioElement.play();
+            } else {
+                audioElement.pause();
+            }
+        }
+
+        // Initialize Audio and Slider
+        function updateSlider(bool) {
+            const slider = document.getElementById("music-slider");
+            if(bool==0){
+                slider.max = audioElement.duration;
+                setInterval(() => {
+                    slider.value = audioElement.currentTime;
+                }, 1000);
+            }
+            if(bool==1){
+                audioElement.currentTime = slider.value;
+            }
+        }
+
+        // Set Audio Source 
+        function setSong(data) {
+            songData = data;
+            document.querySelector('.player img').src = data.mainsong.coverart || 'https://img.freepik.com/premium-photo/white-natural-paper-texture-clean-square-background-wallpaper_118047-7127.jpg';
+            document.querySelector('.player img').setAttribute('data-videoid', data.mainsong.videoid);
+            document.querySelector('.player h2').textContent = data.mainsong.title || 'Unknown Title';
+            document.querySelector('.player p').textContent = data.mainsong.artist || 'Unknown Artist';
+
+            document.querySelector('#similar1 img').src = data.similar1.coverart || 'https://img.freepik.com/premium-photo/white-natural-paper-texture-clean-square-background-wallpaper_118047-7127.jpg';
+            document.querySelector('#similar1').setAttribute('data-videoid', data.similar1.videoid);
+            document.querySelector('#similar1 h3').textContent = data.similar1.title || 'Unknown Title';
+            document.querySelector('#similar1 p').textContent = data.similar1.artist || 'Unknown Artist';
+            
+            document.querySelector('#similar2 img').src = data.similar2.coverart || 'https://img.freepik.com/premium-photo/white-natural-paper-texture-clean-square-background-wallpaper_118047-7127.jpg';
+            document.querySelector('#similar2').setAttribute('data-videoid', data.similar2.videoid);
+            document.querySelector('#similar2 h3').textContent = data.similar2.title || 'Unknown Title';
+            document.querySelector('#similar2 p').textContent = data.similar2.artist || 'Unknown Artist';
+
+            document.querySelector('#similar3 img').src = data.similar3.coverart || 'https://img.freepik.com/premium-photo/white-natural-paper-texture-clean-square-background-wallpaper_118047-7127.jpg';
+            document.querySelector('#similar3').setAttribute('data-videoid', data.similar3.videoid);
+            document.querySelector('#similar3 h3').textContent = data.similar3.title || 'Unknown Title';
+            document.querySelector('#similar3 p').textContent = data.similar3.artist || 'Unknown Artist';
+
+            fetchUrl(data.mainsong.videoid);
+            updateSlider(0);
+        }
+
+        // Fetch Song on emotion
+        async function fetchSongOnEmotion(emotion) {
+                const response = await fetch('/getsongs', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ 'emotion': emotion }),
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                }).then(data => {
+                    console.log("Received data:", data);
+                    setSong(data)
+                }).catch(error => {
+                    console.error("Error fetching data:", error);
+                });
+            }
+
+        async function fetchUrl(videoid){
+            const response = await fetch('/songurl', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ 'videoid': videoid }),
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                }).then(data => {
+                    console.log("Received data:", data);
+                    audioElement.src = data.songurl;
+                }).catch(error => {
+                    console.error("Error fetching data:", error);
+                });
+
+        }
+
+        //Similar Track Play
+        async function similarsongclick(id){
+            videoid = document.querySelector(id).getAttribute('data-videoid');
+            console.log()
+            const response = await fetch('/continuesongs', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ 'videoid': videoid }),
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                }).then(data => {
+                    console.log("Received data:", data);
+                    setSong(data)
+                }).catch(error => {
+                    console.error("Error fetching data:", error);
+                });
+
+        }
+        </script>
+    </body>
+</html>
